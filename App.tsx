@@ -1,4 +1,3 @@
-
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -6,15 +5,62 @@
 
 import React, { useState, useEffect } from 'react';
 import { HeroScene, QuantumComputerScene } from './components/QuantumScene';
-import { SurfaceCodeDiagram, TransformerDecoderDiagram, PerformanceMetricDiagram } from './components/Diagrams';
-import { ArrowDown, Menu, X, BookOpen } from 'lucide-react';
+import { ChiAPETDiagram, InteractionTypesDiagram, CellSpecificityChart } from './components/Diagrams';
+import { ArrowDown, Menu, X, BookOpen, Download, User } from 'lucide-react';
+import { packageProject } from './utils/packager';
+
+// --- PAPER CONFIGURATION ---
+// EDIT THIS OBJECT TO CHANGE THE CONTENT OF THE WEBSITE
+const PAPER_CONFIG = {
+  themeColor: "teal", // Options: gold, teal, blue, rose
+  metadata: {
+    title: "Chromatin Connectivity Maps",
+    subtitle: "Unveiling the 3D Transcriptional Interactomes of Stem Cells",
+    journal: "Nature • Dec 2013",
+    doiUrl: "https://doi.org/10.1038/nature12716",
+    downloadFileName: "3d-genomics-project"
+  },
+  links: {
+    portfolio: "https://ribonchang.github.io/#about" // Back to your profile
+  },
+  abstract: "In multicellular organisms, transcription regulation is one of the central mechanisms modelling lineage differentiation and cell-fate determination. Here, through a chromatin interaction analysis with paired-end tagging (ChIA-PET) approach using an antibody that primarily recognizes the pre-initiation complexes of RNA polymerase II, we explore the transcriptional interactomes of three mouse cells of progressive lineage commitment.",
+  authors: [
+    { name: "Yubo Zhang", role: "Joint Genome Institute, LBNL" },
+    { name: "Chee-Hong Wong", role: "Joint Genome Institute, LBNL" },
+    { name: "Ramon Y. Birnbaum", role: "UCSF" },
+    { name: "Guoliang Li", role: "Jackson Laboratory" },
+    { name: "Chia-Lin Wei", role: "Genome Institute of Singapore" }
+  ],
+  content: {
+    introduction: {
+      title: "The 3D Genome",
+      text: [
+        "Transcription requires dynamic chromatin configurations between promoters and their corresponding distal regulatory elements. It is believed that their communication occurs within large discrete foci of aggregated RNA polymerases termed transcription factories in three-dimensional nuclear space.",
+        "However, the dynamic nature of chromatin connectivity has not been characterized at the genome-wide level. Using RNAPII ChIA-PET, we mapped the global chromatin connectivity in embryonic stem cells (ESCs), neural stem cells (NSCs), and neurosphere stem/progenitor cells (NPCs)."
+      ]
+    },
+    methodology: {
+      title: "ChIA-PET Workflow",
+      text: "The ChIA-PET assay was performed using an RNAPII monoclonal antibody (8WG16). Cells were cross-linked, lysed, and fragmented. The sonicated chromatin-DNA complexes were enriched with antibody-coated beads. To distinguish intramolecular proximity ligation products from chimaeras, two different barcoded biotinylated half-linkers were used.",
+      diagramType: "workflow"
+    },
+    results: {
+      title: "Interaction Landscape",
+      text: "Our global chromatin connectivity maps reveal approximately 40,000 long-range interactions. Analysis shows extensive colocalizations among promoters and distal-acting enhancers. Most enhancers associate with promoters located beyond their nearest active genes, indicating that linear juxtaposition is not the only guiding principle."
+    },
+    impact: {
+      title: "Orchestrating Development",
+      text: "Chromatin connectivity networks reveal that the pivotal genes of reprogramming functions are transcribed within physical proximity to each other in embryonic stem cells. This study sets the stage for the full-scale dissection of spatial and temporal genome structures and their roles in orchestrating development."
+    }
+  }
+};
 
 const AuthorCard = ({ name, role, delay }: { name: string, role: string, delay: string }) => {
   return (
-    <div className="flex flex-col group animate-fade-in-up items-center p-8 bg-white rounded-xl border border-stone-200 shadow-sm hover:shadow-md transition-all duration-300 w-full max-w-xs hover:border-nobel-gold/50" style={{ animationDelay: delay }}>
-      <h3 className="font-serif text-2xl text-stone-900 text-center mb-3">{name}</h3>
-      <div className="w-12 h-0.5 bg-nobel-gold mb-4 opacity-60"></div>
-      <p className="text-xs text-stone-500 font-bold uppercase tracking-widest text-center leading-relaxed">{role}</p>
+    <div className="flex flex-col group animate-fade-in-up items-center p-6 bg-white rounded-xl border border-stone-200 shadow-sm hover:shadow-md transition-all duration-300 w-full max-w-xs hover:border-nobel-gold/50" style={{ animationDelay: delay }}>
+      <h3 className="font-serif text-xl text-stone-900 text-center mb-2">{name}</h3>
+      <div className="w-10 h-0.5 bg-nobel-gold mb-3 opacity-60"></div>
+      <p className="text-[10px] text-stone-500 font-bold uppercase tracking-widest text-center leading-relaxed">{role}</p>
     </div>
   );
 };
@@ -22,6 +68,7 @@ const AuthorCard = ({ name, role, delay }: { name: string, role: string, delay: 
 const App: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isPackaging, setIsPackaging] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -34,43 +81,58 @@ const App: React.FC = () => {
     setMenuOpen(false);
     const element = document.getElementById(id);
     if (element) {
-      // Account for fixed header offset
       const headerOffset = 100;
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+    }
+  };
 
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth"
-      });
+  const handleDownload = async () => {
+    setIsPackaging(true);
+    try {
+      await packageProject(PAPER_CONFIG.metadata.downloadFileName, PAPER_CONFIG.links.portfolio);
+    } catch (error) {
+      console.error("Failed to package", error);
+      alert("Failed to package project.");
+    } finally {
+      setIsPackaging(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#F9F8F4] text-stone-800 selection:bg-nobel-gold selection:text-white">
+    <div className="min-h-screen bg-[#F0FDFA] text-stone-800 selection:bg-nobel-gold selection:text-white">
       
       {/* Navigation */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-[#F9F8F4]/90 backdrop-blur-md shadow-sm py-4' : 'bg-transparent py-6'}`}>
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-[#F0FDFA]/90 backdrop-blur-md shadow-sm py-4' : 'bg-transparent py-6'}`}>
         <div className="container mx-auto px-6 flex justify-between items-center">
           <div className="flex items-center gap-4 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <div className="w-8 h-8 bg-nobel-gold rounded-full flex items-center justify-center text-white font-serif font-bold text-xl shadow-sm pb-1">α</div>
+            <div className="w-8 h-8 bg-nobel-gold rounded-full flex items-center justify-center text-white font-serif font-bold text-xl shadow-sm pb-1">3D</div>
             <span className={`font-serif font-bold text-lg tracking-wide transition-opacity ${scrolled ? 'opacity-100' : 'opacity-0 md:opacity-100'}`}>
-              ALPHAQUBIT <span className="font-normal text-stone-500">2024</span>
+              GENOMICS <span className="font-normal text-stone-500">2013</span>
             </span>
           </div>
           
           <div className="hidden md:flex items-center gap-8 text-sm font-medium tracking-wide text-stone-600">
-            <a href="#introduction" onClick={scrollToSection('introduction')} className="hover:text-nobel-gold transition-colors cursor-pointer uppercase">Introduction</a>
-            <a href="#science" onClick={scrollToSection('science')} className="hover:text-nobel-gold transition-colors cursor-pointer uppercase">The Surface Code</a>
+            <a href="#introduction" onClick={scrollToSection('introduction')} className="hover:text-nobel-gold transition-colors cursor-pointer uppercase">Intro</a>
+            <a href="#methodology" onClick={scrollToSection('methodology')} className="hover:text-nobel-gold transition-colors cursor-pointer uppercase">Methodology</a>
+            <a href="#results" onClick={scrollToSection('results')} className="hover:text-nobel-gold transition-colors cursor-pointer uppercase">Results</a>
             <a href="#impact" onClick={scrollToSection('impact')} className="hover:text-nobel-gold transition-colors cursor-pointer uppercase">Impact</a>
-            <a href="#authors" onClick={scrollToSection('authors')} className="hover:text-nobel-gold transition-colors cursor-pointer uppercase">Authors</a>
             <a 
-              href="https://doi.org/10.1038/s41586-024-08148-8" 
+              href={PAPER_CONFIG.links.portfolio}
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="flex items-center gap-2 hover:text-nobel-gold transition-colors cursor-pointer uppercase"
+            >
+              <User size={14} /> My Profile
+            </a>
+            <a 
+              href={PAPER_CONFIG.metadata.doiUrl}
               target="_blank" 
               rel="noopener noreferrer" 
               className="px-5 py-2 bg-stone-900 text-white rounded-full hover:bg-stone-800 transition-colors shadow-sm cursor-pointer"
             >
-              View Paper
+              Read Paper
             </a>
           </div>
 
@@ -82,19 +144,20 @@ const App: React.FC = () => {
 
       {/* Mobile Menu */}
       {menuOpen && (
-        <div className="fixed inset-0 z-40 bg-[#F9F8F4] flex flex-col items-center justify-center gap-8 text-xl font-serif animate-fade-in">
+        <div className="fixed inset-0 z-40 bg-[#F0FDFA] flex flex-col items-center justify-center gap-8 text-xl font-serif animate-fade-in">
             <a href="#introduction" onClick={scrollToSection('introduction')} className="hover:text-nobel-gold transition-colors cursor-pointer uppercase">Introduction</a>
-            <a href="#science" onClick={scrollToSection('science')} className="hover:text-nobel-gold transition-colors cursor-pointer uppercase">The Science</a>
+            <a href="#methodology" onClick={scrollToSection('methodology')} className="hover:text-nobel-gold transition-colors cursor-pointer uppercase">Methodology</a>
+            <a href="#results" onClick={scrollToSection('results')} className="hover:text-nobel-gold transition-colors cursor-pointer uppercase">Results</a>
             <a href="#impact" onClick={scrollToSection('impact')} className="hover:text-nobel-gold transition-colors cursor-pointer uppercase">Impact</a>
-            <a href="#authors" onClick={scrollToSection('authors')} className="hover:text-nobel-gold transition-colors cursor-pointer uppercase">Authors</a>
+             <a href={PAPER_CONFIG.links.portfolio} className="hover:text-nobel-gold transition-colors cursor-pointer uppercase">My Profile</a>
             <a 
-              href="https://doi.org/10.1038/s41586-024-08148-8" 
+              href={PAPER_CONFIG.metadata.doiUrl}
               target="_blank" 
               rel="noopener noreferrer" 
               onClick={() => setMenuOpen(false)} 
               className="px-6 py-3 bg-stone-900 text-white rounded-full shadow-lg cursor-pointer"
             >
-              View Paper
+              Read Paper
             </a>
         </div>
       )}
@@ -104,22 +167,23 @@ const App: React.FC = () => {
         <HeroScene />
         
         {/* Gradient Overlay */}
-        <div className="absolute inset-0 z-0 pointer-events-none bg-[radial-gradient(circle_at_center,rgba(249,248,244,0.92)_0%,rgba(249,248,244,0.6)_50%,rgba(249,248,244,0.3)_100%)]" />
+        <div className="absolute inset-0 z-0 pointer-events-none bg-[radial-gradient(circle_at_center,rgba(240,253,250,0.85)_0%,rgba(240,253,250,0.5)_50%,rgba(240,253,250,0.2)_100%)]" />
 
         <div className="relative z-10 container mx-auto px-6 text-center">
           <div className="inline-block mb-4 px-3 py-1 border border-nobel-gold text-nobel-gold text-xs tracking-[0.2em] uppercase font-bold rounded-full backdrop-blur-sm bg-white/30">
-            Nature • Nov 2024
+            {PAPER_CONFIG.metadata.journal}
           </div>
-          <h1 className="font-serif text-5xl md:text-7xl lg:text-9xl font-medium leading-tight md:leading-[0.9] mb-8 text-stone-900 drop-shadow-sm">
-            AlphaQubit <br/><span className="italic font-normal text-stone-600 text-3xl md:text-5xl block mt-4">AI for Quantum Error Correction</span>
+          <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl font-medium leading-tight mb-8 text-stone-900 drop-shadow-sm">
+            {PAPER_CONFIG.metadata.title} <br/>
+            <span className="italic font-normal text-stone-500 text-2xl md:text-4xl block mt-4">{PAPER_CONFIG.metadata.subtitle}</span>
           </h1>
-          <p className="max-w-2xl mx-auto text-lg md:text-xl text-stone-700 font-light leading-relaxed mb-12">
-            A recurrent, transformer-based neural network that learns to decode the surface code with unprecedented accuracy.
+          <p className="max-w-3xl mx-auto text-lg md:text-xl text-stone-600 font-light leading-relaxed mb-12">
+            {PAPER_CONFIG.abstract}
           </p>
           
           <div className="flex justify-center">
              <a href="#introduction" onClick={scrollToSection('introduction')} className="group flex flex-col items-center gap-2 text-sm font-medium text-stone-500 hover:text-stone-900 transition-colors cursor-pointer">
-                <span>DISCOVER</span>
+                <span>EXPLORE</span>
                 <span className="p-2 border border-stone-300 rounded-full group-hover:border-stone-900 transition-colors bg-white/50">
                     <ArrowDown size={16} />
                 </span>
@@ -133,175 +197,143 @@ const App: React.FC = () => {
         <section id="introduction" className="py-24 bg-white">
           <div className="container mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-12 gap-12 items-start">
             <div className="md:col-span-4">
-              <div className="inline-block mb-3 text-xs font-bold tracking-widest text-stone-500 uppercase">Introduction</div>
-              <h2 className="font-serif text-4xl mb-6 leading-tight text-stone-900">The Noise Barrier</h2>
+              <div className="inline-block mb-3 text-xs font-bold tracking-widest text-stone-500 uppercase">Context</div>
+              <h2 className="font-serif text-4xl mb-6 leading-tight text-stone-900">{PAPER_CONFIG.content.introduction.title}</h2>
               <div className="w-16 h-1 bg-nobel-gold mb-6"></div>
             </div>
             <div className="md:col-span-8 text-lg text-stone-600 leading-relaxed space-y-6">
-              <p>
-                <span className="text-5xl float-left mr-3 mt-[-8px] font-serif text-nobel-gold">B</span>uilding a large-scale quantum computer requires correcting the errors that inevitably arise in physical systems. The state of the art is the <strong>surface code</strong>, which encodes information redundantly across many physical qubits.
-              </p>
-              <p>
-                However, interpreting the noisy signals from these codes—a task called "decoding"—is a massive challenge. Complex noise effects like cross-talk and leakage confuse standard algorithms. <strong className="text-stone-900 font-medium">AlphaQubit</strong> uses machine learning to learn these complex error patterns directly from the quantum processor, achieving accuracy far beyond human-designed algorithms.
-              </p>
+              {PAPER_CONFIG.content.introduction.text.map((paragraph, idx) => (
+                <p key={idx}>
+                  {idx === 0 && <span className="text-5xl float-left mr-3 mt-[-8px] font-serif text-nobel-gold">{paragraph.charAt(0)}</span>}
+                  {idx === 0 ? paragraph.slice(1) : paragraph}
+                </p>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* The Science: Surface Code */}
-        <section id="science" className="py-24 bg-white border-t border-stone-100">
+        {/* Methodology */}
+        <section id="methodology" className="py-24 bg-[#F0FDFA] border-t border-stone-100">
             <div className="container mx-auto px-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                     <div>
-                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-stone-100 text-stone-600 text-xs font-bold tracking-widest uppercase rounded-full mb-6 border border-stone-200">
-                            <BookOpen size={14}/> THE SYSTEM
+                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-white text-stone-600 text-xs font-bold tracking-widest uppercase rounded-full mb-6 border border-stone-200">
+                            <BookOpen size={14}/> Experimental Design
                         </div>
-                        <h2 className="font-serif text-4xl md:text-5xl mb-6 text-stone-900">The Surface Code</h2>
+                        <h2 className="font-serif text-4xl md:text-5xl mb-6 text-stone-900">{PAPER_CONFIG.content.methodology.title}</h2>
                         <p className="text-lg text-stone-600 mb-6 leading-relaxed">
-                           In a surface code, "Data Qubits" hold the quantum information, while "Stabilizer Qubits" interspersed between them act as watchdogs. They measure parity checks (X and Z type) to detect errors without destroying the quantum state.
-                        </p>
-                        <p className="text-lg text-stone-600 mb-6 leading-relaxed">
-                            When a data qubit flips, adjacent stabilizers light up. The pattern of these lights is the "syndrome." The decoder's job is to look at the syndrome and guess which data qubit flipped.
+                           {PAPER_CONFIG.content.methodology.text}
                         </p>
                     </div>
                     <div>
-                        <SurfaceCodeDiagram />
+                        <ChiAPETDiagram />
                     </div>
                 </div>
             </div>
         </section>
 
-        {/* The Science: Transformer Decoder */}
-        <section className="py-24 bg-stone-900 text-stone-100 overflow-hidden relative">
+        {/* Results */}
+        <section id="results" className="py-24 bg-stone-900 text-stone-100 overflow-hidden relative">
             <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-                {/* Decorative background pattern - Gold/Stone theme */}
-                <div className="w-96 h-96 rounded-full bg-stone-600 blur-[100px] absolute top-[-100px] left-[-100px]"></div>
-                <div className="w-96 h-96 rounded-full bg-nobel-gold blur-[100px] absolute bottom-[-100px] right-[-100px]"></div>
+                {/* Decorative background pattern */}
+                <div className="w-96 h-96 rounded-full bg-teal-600 blur-[100px] absolute top-[-100px] left-[-100px]"></div>
+                <div className="w-96 h-96 rounded-full bg-blue-500 blur-[100px] absolute bottom-[-100px] right-[-100px]"></div>
             </div>
 
             <div className="container mx-auto px-6 relative z-10">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                      <div className="order-2 lg:order-1">
-                        <TransformerDecoderDiagram />
+                        <InteractionTypesDiagram />
                      </div>
                      <div className="order-1 lg:order-2">
                         <div className="inline-flex items-center gap-2 px-3 py-1 bg-stone-800 text-nobel-gold text-xs font-bold tracking-widest uppercase rounded-full mb-6 border border-stone-700">
-                            THE INNOVATION
+                            Key Findings
                         </div>
-                        <h2 className="font-serif text-4xl md:text-5xl mb-6 text-white">Neural Decoding</h2>
-                        <p className="text-lg text-stone-400 mb-6 leading-relaxed">
-                            Standard decoders assume simple, independent errors. Real hardware is messier. AlphaQubit treats decoding as a sequence prediction problem, using a <strong>Recurrent Transformer</strong> architecture.
+                        <h2 className="font-serif text-4xl md:text-5xl mb-6 text-white">{PAPER_CONFIG.content.results.title}</h2>
+                        <p className="text-lg text-stone-300 mb-6 leading-relaxed">
+                            {PAPER_CONFIG.content.results.text}
                         </p>
-                        <p className="text-lg text-stone-400 leading-relaxed">
-                            It ingests the history of stabilizer measurements and uses "soft" analog information—probabilities rather than just binary 0s and 1s—to make highly informed predictions about logical errors.
-                        </p>
+                        <ul className="space-y-4 text-stone-400">
+                          <li className="flex items-start gap-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-nobel-gold mt-2"></div>
+                            <span>Identified ~40,000 interactions across 3 cell types</span>
+                          </li>
+                          <li className="flex items-start gap-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-nobel-gold mt-2"></div>
+                            <span>Promoter-Promoter and Promoter-Enhancer interactions dominate</span>
+                          </li>
+                          <li className="flex items-start gap-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-nobel-gold mt-2"></div>
+                            <span>Enhancers are highly cell-type specific</span>
+                          </li>
+                        </ul>
                      </div>
                 </div>
             </div>
         </section>
 
-        {/* The Science: Results */}
-        <section className="py-24 bg-[#F9F8F4]">
+        {/* Cell Specificity Impact */}
+        <section id="impact" className="py-24 bg-white">
             <div className="container mx-auto px-6">
                 <div className="max-w-4xl mx-auto text-center mb-12">
-                    <h2 className="font-serif text-4xl md:text-5xl mb-6 text-stone-900">Outperforming the Standard</h2>
+                    <h2 className="font-serif text-4xl md:text-5xl mb-6 text-stone-900">{PAPER_CONFIG.content.impact.title}</h2>
                     <p className="text-lg text-stone-600 leading-relaxed">
-                        AlphaQubit was tested on Google's Sycamore processor and accurate simulations. It consistently outperforms "Minimum-Weight Perfect Matching" (MWPM), the industry standard, effectively making the quantum computer appear cleaner than it actually is.
+                        {PAPER_CONFIG.content.impact.text}
                     </p>
                 </div>
-                <div className="max-w-3xl mx-auto">
-                    <PerformanceMetricDiagram />
+                <div className="max-w-4xl mx-auto">
+                    <CellSpecificityChart />
                 </div>
             </div>
         </section>
 
-        {/* Impact */}
-        <section id="impact" className="py-24 bg-white border-t border-stone-200">
-             <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-12 gap-12">
-                <div className="md:col-span-5 relative">
-                    <div className="aspect-square bg-[#F5F4F0] rounded-xl overflow-hidden relative border border-stone-200 shadow-inner">
-                        <QuantumComputerScene />
-                        <div className="absolute bottom-4 left-0 right-0 text-center text-xs text-stone-400 font-serif italic">Simulation of the Sycamore Processor environment</div>
-                    </div>
-                </div>
-                <div className="md:col-span-7 flex flex-col justify-center">
-                    <div className="inline-block mb-3 text-xs font-bold tracking-widest text-stone-500 uppercase">IMPACT</div>
-                    <h2 className="font-serif text-4xl mb-6 text-stone-900">Towards Fault Tolerance</h2>
-                    <p className="text-lg text-stone-600 mb-6 leading-relaxed">
-                        AlphaQubit maintains its advantage even as the code distance increases (up to distance 11). It handles realistic noise including cross-talk and leakage, effects that often cripple standard decoders.
-                    </p>
-                    <p className="text-lg text-stone-600 mb-8 leading-relaxed">
-                        By learning from data directly, machine learning decoders can adapt to the unique quirks of each quantum processor, potentially reducing the hardware requirements for useful quantum computing.
-                    </p>
-                    
-                    <div className="p-6 bg-[#F9F8F4] border border-stone-200 rounded-lg border-l-4 border-l-nobel-gold">
-                        <p className="font-serif italic text-xl text-stone-800 mb-4">
-                            "Our work illustrates the ability of machine learning to go beyond human-designed algorithms by learning from data directly, highlighting machine learning as a strong contender for decoding in quantum computers."
-                        </p>
-                        <span className="text-sm font-bold text-stone-500 tracking-wider uppercase">— Bausch et al., Nature (2024)</span>
-                    </div>
-                </div>
-             </div>
-        </section>
-
         {/* Authors */}
-        <section id="authors" className="py-24 bg-[#F5F4F0] border-t border-stone-300">
+        <section id="authors" className="py-24 bg-[#F0FDFA] border-t border-stone-300">
            <div className="container mx-auto px-6">
                 <div className="text-center mb-16">
                     <div className="inline-block mb-3 text-xs font-bold tracking-widest text-stone-500 uppercase">RESEARCH TEAM</div>
-                    <h2 className="font-serif text-3xl md:text-5xl mb-4 text-stone-900">Key Contributors</h2>
-                    <p className="text-stone-500 max-w-2xl mx-auto">A collaboration between Google DeepMind and Google Quantum AI.</p>
+                    <h2 className="font-serif text-3xl md:text-5xl mb-4 text-stone-900">Contributors</h2>
                 </div>
                 
-                <div className="flex flex-col md:flex-row gap-8 justify-center items-center flex-wrap">
-                    <AuthorCard 
-                        name="Johannes Bausch" 
-                        role="Google DeepMind" 
-                        delay="0s" 
-                    />
-                    <AuthorCard 
-                        name="Andrew W. Senior" 
-                        role="Google DeepMind" 
-                        delay="0.1s" 
-                    />
-                    <AuthorCard 
-                        name="Francisco J. H. Heras" 
-                        role="Google DeepMind" 
-                        delay="0.2s" 
-                    />
-                    <AuthorCard 
-                        name="Thomas Edlich" 
-                        role="Google DeepMind" 
-                        delay="0.3s" 
-                    />
-                    <AuthorCard 
-                        name="Alex Davies" 
-                        role="Google DeepMind" 
-                        delay="0.4s" 
-                    />
-                    <AuthorCard 
-                        name="Michael Newman" 
-                        role="Google Quantum AI" 
-                        delay="0.5s" 
-                    />
-                </div>
-                <div className="text-center mt-12">
-                    <p className="text-stone-500 italic">And many others contributing to hardware, theory, and engineering.</p>
+                <div className="flex flex-col md:flex-row gap-6 justify-center items-center flex-wrap">
+                    {PAPER_CONFIG.authors.map((author, index) => (
+                      <AuthorCard 
+                          key={index}
+                          name={author.name} 
+                          role={author.role} 
+                          delay={`${index * 0.1}s`} 
+                      />
+                    ))}
                 </div>
            </div>
         </section>
 
       </main>
 
-      <footer className="bg-stone-900 text-stone-400 py-16">
-        <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
-            <div className="text-center md:text-left">
-                <div className="text-white font-serif font-bold text-2xl mb-2">AlphaQubit</div>
-                <p className="text-sm">Visualizing "Learning high-accuracy error decoding for quantum processors"</p>
+      <footer className="bg-stone-900 text-stone-400 py-12 border-t border-stone-800">
+        <div className="container mx-auto px-6 flex flex-col items-center gap-6">
+            <div className="text-center">
+                <div className="text-white font-serif font-bold text-2xl mb-2">{PAPER_CONFIG.metadata.title}</div>
+                <p className="text-sm opacity-60">{PAPER_CONFIG.metadata.subtitle}</p>
             </div>
-        </div>
-        <div className="text-center mt-12 text-xs text-stone-600">
-            Based on research published in Nature (2024). Generated by AI.
+            
+            <button 
+              onClick={handleDownload}
+              disabled={isPackaging}
+              className="flex items-center gap-2 px-6 py-3 bg-nobel-gold text-white rounded-lg hover:bg-opacity-90 transition-all font-medium text-sm"
+            >
+              {isPackaging ? (
+                <span className="animate-pulse">Packaging...</span>
+              ) : (
+                <>
+                  <Download size={16} />
+                  Download Project Source
+                </>
+              )}
+            </button>
+            <p className="text-xs text-stone-600 mt-4">
+              Designed for ribonchang.github.io
+            </p>
         </div>
       </footer>
     </div>
